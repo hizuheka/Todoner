@@ -44,7 +44,7 @@ func parseRecord(fields []string) (Record, error) {
 
 func parseTime(timeStr string) (time.Duration, error) {
 	// 時間形式をパース
-	parsedTime, err := time.Parse("0:04:05", timeStr)
+	parsedTime, err := time.Parse("3:04:05", timeStr)
 	if err != nil {
 		return 0, err
 	}

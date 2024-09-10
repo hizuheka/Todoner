@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/samber/lo"
 )
@@ -57,23 +58,38 @@ func main() {
 	})
 
 	// 1) 処理区毎の使用件数
-	fmt.Println("1) 処理区毎の集計")
+	// fmt.Println("1) 処理区毎の集計")
 	for ku, rs := range grpKu {
 		fmt.Printf("区=%s, 件数=%d\n", ku, len(rs))
+
+		// 処理区＋異動事由でグルーピング
+		grpCido := lo.GroupBy(rs, func(r Record) string {
+			return r.LifeEvent
+		})
+
+		for ido, rs := range grpCido {
+			totalUsageTime := lo.SumBy(rs, func(r Record) time.Duration {
+				return r.UsageTime
+			})
+			fmt.Printf("区=%s, 異動事由=%s, 件数=%d, 平均使用時間=%v\n", ku, ido, len(rs), totalUsageTime/time.Duration(len(rs)))
+		}
 	}
 
-	// 処理区＋異動事由でグルーピング
-	grpCido := lo.GroupBy(grpKu["C"], func(r Record) string {
-		return r.LifeEvent
-	})
+	// // 処理区＋異動事由でグルーピング
+	// grpCido := lo.GroupBy(grpKu["C"], func(r Record) string {
+	// 	return r.LifeEvent
+	// })
 
-	// 2) 処理区毎＋異動事由毎の使用件数
-	fmt.Println("2) 処理区毎＋異動事由毎の使用件数")
-	printNo2("C", grpCido)
+	// // 2) 処理区毎＋異動事由毎の使用件数
+	// fmt.Println("2) 処理区毎＋異動事由毎の使用件数")
+	// printNo2("C", grpCido)
 }
 
 func printNo2(ku string, idoMap map[string][]Record) {
 	for ido, rs := range idoMap {
-		fmt.Printf("区=%s, 異動事由=%s, 件数=%d\n", ku, ido, len(rs))
+		totalUsageTime := lo.SumBy(rs, func(r Record) time.Duration {
+			return r.UsageTime
+		})
+		fmt.Printf("区=%s, 異動事由=%s, 件数=%d, 平均使用時間=%v\n", ku, ido, len(rs), totalUsageTime/time.Duration(len(rs)))
 	}
 }
