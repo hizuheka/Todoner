@@ -2,23 +2,37 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io"
 	"os"
 	"time"
 
 	"github.com/samber/lo"
+	lop "github.com/samber/lo/parallel"
 )
 
+var version string
+
 func main() {
+	var v bool
+	flag.BoolVar(&v, "version", false, "バージョン")
+	flag.Parse()
+
+	// バージョン表示
+	if v {
+		fmt.Printf("Todoner.exe version %s\n", version)
+		return
+	}
+
 	// 起動時引数のチェック
-	if len(os.Args) < 2 {
+	if len(flag.Args()) != 1 {
 		fmt.Println("Usage: Todoner.exe <input_file>")
 		return
 	}
 
 	// 入力ファイルのオープン
-	fileName := os.Args[1]
+	fileName := flag.Arg(0)
 	file, err := os.Open(fileName)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -53,7 +67,7 @@ func main() {
 	}
 
 	// 処理区でグルーピング
-	grpKu := lo.GroupBy(records, func(r Record) string {
+	grpKu := lop.GroupBy(records, func(r Record) string {
 		return r.GetKu()
 	})
 
@@ -63,7 +77,7 @@ func main() {
 		fmt.Printf("区=%s, 件数=%d\n", ku, len(rs))
 
 		// 処理区＋異動事由でグルーピング
-		grpCido := lo.GroupBy(rs, func(r Record) string {
+		grpCido := lop.GroupBy(rs, func(r Record) string {
 			return r.LifeEvent
 		})
 
